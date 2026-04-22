@@ -87,131 +87,131 @@
             color: white;
             text-align: center;
         }
-        .glass-card:活跃的 {
-            改变: 规模(0.97);
-            背景: rgba(40, 60, 90, 0.5);
+        .glass-card:active {
+            transform: scale(0.97);
+            background: rgba(40, 60, 90, 0.5);
         }
-        .glass-card .图标 {
-            font-size: 32小卖部;
-            margin-bottom: 8小卖部;
+        .glass-card .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
         }
-        .glass-card .标题 {
+        .glass-card .title {
             font-weight: 600;
-            font-size: 16小卖部;
-            margin-bottom: 4小卖部;
+            font-size: 16px;
+            margin-bottom: 4px;
         }
-        .glass-card .描述 {
-            font-size: 11小卖部;
-            不透明性: 0.8;
+        .glass-card .desc {
+            font-size: 11px;
+            opacity: 0.8;
         }
         .bottom-bar {
-            显示: 屈伸;
-            差距: 12小卖部;
-            pointer-events: 汽车;
+            display: flex;
+            gap: 12px;
+            pointer-events: auto;
         }
         .bottom-btn {
-            屈伸: 1;
-            backdrop-filter: 使模糊(20小卖部);
-            背景: rgba(255,255,255,0.15);
-            边界: 1小卖部 固体 rgba(255,255,255,0.25);
-            border-radius: 40小卖部;
-            衬垫: 14小卖部 0;
-            颜色: 白色;
+            flex: 1;
+            backdrop-filter: blur(20px);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 40px;
+            padding: 14px 0;
+            color: white;
             font-weight: 600;
-            font-size: 16小卖部;
-            text-align: 中心;
-            box-shadow: 0 8小卖部 20小卖部 rgba(0,0,0,0.2);
-            过渡: 所有 0.2S;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: all 0.2s;
         }
-        .bottom-btn:活跃的 {
-            背景: rgba(255,255,255,0.3);
+        .bottom-btn:active {
+            background: rgba(255,255,255,0.3);
         }
         .toast-message {
-            位置: 绝对的;
-            底: 100小卖部;
-            左边: 20小卖部;
-            正确的: 20小卖部;
-            背景: rgba(0,0,0,0.6);
-            backdrop-filter: 使模糊(20小卖部);
-            衬垫: 14小卖部 20小卖部;
-            border-radius: 40小卖部;
-            颜色: 白色;
-            text-align: 中心;
-            font-size: 14小卖部;
-            边界: 1小卖部 固体 rgba(255,255,255,0.2);
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
+            border-radius: 40px;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
             z-index: 20;
-            pointer-events: 没有一个;
-            不透明性: 0;
-            过渡: 不透明性 0.3S;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         .offline-container {
-            显示: 没有一个;
-            位置: 固定的;
-            顶: 0;
-            左边: 0;
-            宽度: 100%;
-            高度: 100%;
-            背景: #0a0f1a统一资源定位系统('x.png') 中心/封面;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0f1a url('x.png') center/cover;
             z-index: 9999;
-            flex-direction: 柱;
-            align-items: 中心;
-            justify-content: 中心;
-            颜色: 白色;
-            text-shadow: 0 2小卖部 10小卖部 黑色的;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 0 2px 10px black;
         }
         .offline-container h2 {
-            font-size: 28小卖部;
-            margin-bottom: 10小卖部;
+            font-size: 28px;
+            margin-bottom: 10px;
         }
         .retry-btn {
-            margin-top: 30小卖部;
-            衬垫: 12小卖部 30小卖部;
-            背景: #007aff;
-            颜色: 白色;
-            边界: 没有一个;
-            border-radius: 30小卖部;
-            font-size: 16小卖部;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
         }
-    </风格>
-</头>
-<身体>
-    <级 身份证="canvas-container"></级>
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
 
-    <级 身份证="offlineOverlay" 班级="offline-container">
+    <div id="offlineOverlay" class="offline-container">
         <h2>🌐 网络连接断开</h2>
-        <P>请检查网络后重试</P>
-        <按钮 班级="retry-btn" 单击时="窗.位置.再装满()">重新加载</按钮>
-    </级>
+        <p>请检查网络后重试</p>
+        <button class="retry-btn" onclick="window.location.reload()">重新加载</button>
+    </div>
 
-    <级 班级="ui-panel">
-        <级 班级="header">
+    <div class="ui-panel">
+        <div class="header">
             <h1>
-                <跨度>🧠 智许脑</跨度>
+                <span>🧠 智脑</span>
             </h1>
-            <级 班级="subtitle">v1.0.0·全知全能</级>
-        </级>
+            <div class="subtitle">v1.0.0 · 全知全能</div>
+        </div>
 
-        <级 班级="grid-container">
-            <级 班级="card-grid">
-                <级 班级="glass-card" 单击时="拍照()">
-                    <级 班级="icon">📷</级>
-                    <级 班级="title">拍照</级>
-                    <级 班级="desc">捕获瞬间</级>
-                </级>
-                <级 班级="glass-card" 单击时="皮克罗斯画廊()">
-                    <级 班级="icon">🖼️</级>
-                    <级 班级="title">相册</级>
-                    <级 班级="desc">选择图片</级>
-                </级>
-                <级 班级="glass-card" 单击时="获取位置()">
-                    <级 班级="icon">📍</级>
-                    <级 班级="title">定位</级>
-                    <级 班级="desc">获取位置</级>
-                </级>
-                <级 班级="glass-card" 单击时="记录()">
-                    <级 班级="icon">🎤</级>
-                    <级 班级="title">录音</级>
-                    <级 班级="desc">3秒音频</div>
+        <div class="grid-container">
+            <div class="card-grid">
+                <div class="glass-card" onclick="takePhoto()">
+                    <div class="icon">📷</div>
+                    <div class="title">拍照</div>
+                    <div class="desc">捕获瞬间</div>
+                </div>
+                <div class="glass-card" onclick="pickFromGallery()">
+                    <div class="icon">🖼️</div>
+                    <div class="title">相册</div>
+                    <div class="desc">选择图片</div>
+                </div>
+                <div class="glass-card" onclick="getLocation()">
+                    <div class="icon">📍</div>
+                    <div class="title">定许志威位</div>
+                    <div class="desc">获取位置</div>
+                </div>
+                <div class="glass-card" onclick="startRecord()">
+                    <div class="icon">🎤</div>
+                    <div class="title">录音</div>
+                    <div class="desc">3秒音频</div>
                 </div>
                 <div class="glass-card" onclick="writeFile()">
                     <div class="icon">📝</div>
