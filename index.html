@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>智脑 · 炫酷首页</title>
+    <title>智脑 · 进化</title>
+    <!-- GSAP 动画库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Three.js 核心库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
@@ -26,7 +28,8 @@
             height: 100%;
             z-index: 0;
         }
-        .ui-panel {
+        /* 主应用层 */
+        .app-shell {
             position: absolute;
             top: 0;
             left: 0;
@@ -35,7 +38,6 @@
             z-index: 10;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             pointer-events: none;
             padding-top: env(safe-area-inset-top);
         }
@@ -61,20 +63,33 @@
             opacity: 0.9;
             font-size: 14px;
         }
-        .grid-container {
+        /* 页面容器 (支持滑动切换) */
+        .pages-container {
             flex: 1;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            pointer-events: auto;
+            scrollbar-width: none;
+        }
+        .pages-container::-webkit-scrollbar {
+            display: none;
+        }
+        .page {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             padding: 20px;
-            pointer-events: none;
+            padding-bottom: 90px;
         }
+        /* 网格卡片 */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin-bottom: 20px;
-            pointer-events: auto;
         }
         .glass-card {
             backdrop-filter: blur(20px);
@@ -104,28 +119,93 @@
             font-size: 11px;
             opacity: 0.8;
         }
-        .bottom-bar {
-            display: flex;
-            gap: 12px;
-            pointer-events: auto;
-        }
-        .bottom-btn {
-            flex: 1;
+        /* AI 对话区域 */
+        .chat-container {
+            background: rgba(20, 30, 45, 0.3);
             backdrop-filter: blur(20px);
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 40px;
-            padding: 14px 0;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            padding: 10px 14px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: #007aff;
+            color: white;
+        }
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 12px 18px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        .chat-send {
+            background: #007aff;
+            border: none;
+            border-radius: 30px;
+            padding: 0 20px;
             color: white;
             font-weight: 600;
-            font-size: 16px;
-            text-align: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+            backdrop-filter: blur(20px);
+            background: rgba(20, 30, 45, 0.5);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            pointer-events: auto;
+            z-index: 20;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.7);
             transition: all 0.2s;
+            font-size: 12px;
         }
-        .bottom-btn:active {
-            background: rgba(255,255,255,0.3);
+        .nav-item.active {
+            color: white;
+            transform: translateY(-2px);
         }
+        .nav-item .nav-icon {
+            font-size: 24px;
+        }
+        /* 轻提示 */
         .toast-message {
             position: absolute;
             bottom: 100px;
@@ -139,18 +219,16 @@
             text-align: center;
             font-size: 14px;
             border: 1px solid rgba(255,255,255,0.2);
-            z-index: 20;
+            z-index: 30;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
         }
+        /* 离线覆盖层 */
         .offline-container {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #0a0f1a url('x.png') center/cover;
             z-index: 9999;
             flex-direction: column;
@@ -159,10 +237,7 @@
             color: white;
             text-shadow: 0 2px 10px black;
         }
-        .offline-container h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
+        .offline-container h2 { font-size: 28px; margin-bottom: 10px; }
         .retry-btn {
             margin-top: 30px;
             padding: 12px 30px;
@@ -171,6 +246,29 @@
             border: none;
             border-radius: 30px;
             font-size: 16px;
+        }
+        /* 设置页列表 */
+        .settings-list {
+            background: rgba(20, 30, 45, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+        }
+        .settings-item {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        .settings-item .label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
     </style>
 </head>
@@ -183,51 +281,97 @@
         <button class="retry-btn" onclick="window.location.reload()">重新加载</button>
     </div>
 
-    <div class="ui-panel">
+    <div class="app-shell">
         <div class="header">
             <h1>
                 <span>🧠 智脑</span>
             </h1>
-            <div class="subtitle">v1.0.0 · 全知全能</div>
+            <div class="subtitle" id="pageTitle">首页 · 全知全能</div>
         </div>
 
-        <div class="grid-container">
-            <div class="card-grid">
-                <div class="glass-card" onclick="takePhoto()">
-                    <div class="icon">📷</div>
-                    <div class="title">拍照</div>
-                    <div class="desc">捕获瞬间</div>
-                </div>
-                <div class="glass-card" onclick="pickFromGallery()">
-                    <div class="icon">🖼️</div>
-                    <div class="title">相册</div>
-                    <div class="desc">选择图片</div>
-                </div>
-                <div class="glass-card" onclick="getLocation()">
-                    <div class="icon">📍</div>
-                    <div class="title">定许志威位</div>
-                    <div class="desc">获取位置</div>
-                </div>
-                <div class="glass-card" onclick="startRecord()">
-                    <div class="icon">🎤</div>
-                    <div class="title">录音</div>
-                    <div class="desc">3秒音频</div>
-                </div>
-                <div class="glass-card" onclick="writeFile()">
-                    <div class="icon">📝</div>
-                    <div class="title">写文件</div>
-                    <div class="desc">保存数据</div>
-                </div>
-                <div class="glass-card" onclick="readFile()">
-                    <div class="icon">📂</div>
-                    <div class="title">读文件</div>
-                    <div class="desc">查看内容</div>
+        <!-- 可滑动页面容器 -->
+        <div class="pages-container" id="pagesContainer">
+            <!-- 首页 -->
+            <div class="page" id="homePage">
+                <div class="card-grid">
+                    <div class="glass-card" onclick="takePhoto()">
+                        <div class="icon">📷</div>
+                        <div class="title">拍照</div>
+                        <div class="desc">捕获瞬间</div>
+                    </div>
+                    <div class="glass-card" onclick="pickFromGallery()">
+                        <div class="icon">🖼️</div>
+                        <div class="title">相册</div>
+                        <div class="desc">选择图片</div>
+                    </div>
+                    <div class="glass-card" onclick="getLocation()">
+                        <div class="icon">📍</div>
+                        <div class="title">定位</div>
+                        <div class="desc">获取位置</div>
+                    </div>
+                    <div class="glass-card" onclick="startRecord()">
+                        <div class="icon">🎤</div>
+                        <div class="title">录音</div>
+                        <div class="desc">3秒音频</div>
+                    </div>
+                    <div class="glass-card" onclick="writeFile()">
+                        <div class="icon">📝</div>
+                        <div class="title">写文件</div>
+                        <div class="desc">保存数据</div>
+                    </div>
+                    <div class="glass-card" onclick="readFile()">
+                        <div class="icon">📂</div>
+                        <div class="title">读文件</div>
+                        <div class="desc">查看内容</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="bottom-bar">
-                <div class="bottom-btn" onclick="showToast('✨ 功能开发中')">AI 助手</div>
-                <div class="bottom-btn" onclick="showToast('⚙️ 设置')">设置</div>
+            <!-- AI 助手页 -->
+            <div class="page" id="aiPage">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot">你好，我是智脑助手！有什么可以帮你的？</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." />
+                        <button class="chat-send" onclick="sendMessage()">发送</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置页 -->
+            <div class="page" id="settingsPage">
+                <div class="settings-list">
+                    <div class="settings-item">
+                        <div class="label"><span>🌙</span> 深色模式</div>
+                        <span>跟随系统</span>
+                    </div>
+                    <div class="settings-item" onclick="showToast('缓存已清除')">
+                        <div class="label"><span>🧹</span> 清除缓存</div>
+                        <span>12.3 MB</span>
+                    </div>
+                    <div class="settings-item" onclick="showToast('当前版本 v1.0.0')">
+                        <div class="label"><span>ℹ️</span> 关于</div>
+                        <span>v1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <div class="nav-item active" data-page="homePage" onclick="switchPage('homePage')">
+                <span class="nav-icon">🏠</span>
+                <span>首页</span>
+            </div>
+            <div class="nav-item" data-page="aiPage" onclick="switchPage('aiPage')">
+                <span class="nav-icon">🤖</span>
+                <span>AI助手</span>
+            </div>
+            <div class="nav-item" data-page="settingsPage" onclick="switchPage('settingsPage')">
+                <span class="nav-icon">⚙️</span>
+                <span>设置</span>
             </div>
         </div>
     </div>
@@ -236,15 +380,13 @@
 
     <script type="text/javascript" src="cordova.js"></script>
     <script>
-        // ---------- Three.js 粒子背景 ----------
+        // ---------- Three.js 粒子背景 (保持原有) ----------
         (function initThree() {
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x050b14);
-            
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 30;
-            
             const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -252,8 +394,7 @@
             
             function createParticleTexture() {
                 const canvas = document.createElement('canvas');
-                canvas.width = 64;
-                canvas.height = 64;
+                canvas.width = 64; canvas.height = 64;
                 const ctx = canvas.getContext('2d');
                 const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
                 gradient.addColorStop(0, 'rgba(255,255,255,1)');
@@ -263,69 +404,41 @@
                 ctx.fillRect(0, 0, 64, 64);
                 return new THREE.CanvasTexture(canvas);
             }
-            
             const particleTexture = createParticleTexture();
-            
             const particlesGeo = new THREE.BufferGeometry();
             const count = 3000;
             const positions = new Float32Array(count * 3);
             const colors = new Float32Array(count * 3);
-            
             const color1 = new THREE.Color(0x4a7db4);
             const color2 = new THREE.Color(0x9f5bb4);
             const color3 = new THREE.Color(0x3cc6b0);
-            
             for (let i = 0; i < count; i++) {
                 const r = 20 + Math.random() * 40;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
-                
                 let px = r * Math.sin(phi) * Math.cos(theta);
                 let py = r * Math.sin(phi) * Math.sin(theta) * 0.6;
                 let pz = r * Math.cos(phi);
-                
                 if (Math.random() > 0.7) {
                     px = (Math.random() - 0.5) * 100;
                     py = (Math.random() - 0.5) * 80;
                     pz = (Math.random() - 0.5) * 100;
                 }
-                
-                positions[i*3] = px;
-                positions[i*3+1] = py;
-                positions[i*3+2] = pz;
-                
+                positions[i*3] = px; positions[i*3+1] = py; positions[i*3+2] = pz;
                 let color;
                 const rand = Math.random();
                 if (rand < 0.4) color = color1;
                 else if (rand < 0.75) color = color2;
                 else color = color3;
-                
-                colors[i*3] = color.r;
-                colors[i*3+1] = color.g;
-                colors[i*3+2] = color.b;
+                colors[i*3] = color.r; colors[i*3+1] = color.g; colors[i*3+2] = color.b;
             }
-            
             particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             particlesGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            
-            const particlesMat = new THREE.PointsMaterial({
-                size: 0.25,
-                map: particleTexture,
-                vertexColors: true,
-                transparent: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
-            });
-            
+            const particlesMat = new THREE.PointsMaterial({ size: 0.25, map: particleTexture, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
             const particles = new THREE.Points(particlesGeo, particlesMat);
             scene.add(particles);
-            
-            const glowSphere = new THREE.Mesh(
-                new THREE.SphereGeometry(3, 32, 16),
-                new THREE.MeshBasicMaterial({ color: 0x2a4a7f, transparent: true, opacity: 0.15, wireframe: true })
-            );
+            const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 16), new THREE.MeshBasicMaterial({ color: 0x2a4a7f, transparent: true, opacity: 0.15, wireframe: true }));
             scene.add(glowSphere);
-            
             const starsGeo = new THREE.BufferGeometry();
             const starsPos = new Float32Array(800 * 3);
             for (let i = 0; i < 800; i++) {
@@ -339,63 +452,100 @@
             scene.add(stars);
             
             let mouseX = 0, mouseY = 0;
-            window.addEventListener('mousemove', (e) => {
-                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-            });
-            
+            window.addEventListener('mousemove', (e) => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = -(e.clientY / window.innerHeight) * 2 + 1; });
             function animate() {
                 requestAnimationFrame(animate);
-                
-                particles.rotation.y += 0.0008;
-                particles.rotation.x += 0.0002;
-                stars.rotation.y -= 0.0003;
-                glowSphere.rotation.x += 0.002;
-                glowSphere.rotation.y += 0.003;
-                
+                particles.rotation.y += 0.0008; particles.rotation.x += 0.0002;
+                stars.rotation.y -= 0.0003; glowSphere.rotation.x += 0.002; glowSphere.rotation.y += 0.003;
                 camera.position.x += (mouseX * 8 - camera.position.x) * 0.02;
                 camera.position.y += (mouseY * 5 - camera.position.y) * 0.02;
                 camera.lookAt(0, 0, 0);
-                
                 renderer.render(scene, camera);
             }
             animate();
-            
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         })();
 
-        // ---------- GSAP 入场动画 ----------
+        // ---------- 页面切换逻辑 ----------
+        const pagesContainer = document.getElementById('pagesContainer');
+        const navItems = document.querySelectorAll('.nav-item');
+        const pageTitle = document.getElementById('pageTitle');
+        const pageNames = { homePage: '首页 · 全知全能', aiPage: 'AI助手 · 智能对话', settingsPage: '设置 · 个性化' };
+
+        function switchPage(pageId) {
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                updateActiveNav(pageId);
+                pageTitle.textContent = pageNames[pageId] || '智脑';
+                gsap.from(targetPage, { opacity: 0, y: 20, duration: 0.4 });
+            }
+        }
+
+        function updateActiveNav(activeId) {
+            navItems.forEach(item => {
+                const page = item.dataset.page;
+                if (page === activeId) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+        }
+
+        // 监听滚动同步导航
+        pagesContainer.addEventListener('scroll', () => {
+            const scrollLeft = pagesContainer.scrollLeft;
+            const pageWidth = pagesContainer.clientWidth;
+            const index = Math.round(scrollLeft / pageWidth);
+            const pageId = ['homePage', 'aiPage', 'settingsPage'][index];
+            if (pageId) {
+                updateActiveNav(pageId);
+                pageTitle.textContent = pageNames[pageId];
+            }
+        });
+
+        // 入场动画
         window.addEventListener('load', () => {
             gsap.from('.header', { y: -50, opacity: 0, duration: 1, ease: 'power3.out' });
             gsap.from('.glass-card', { scale: 0.8, opacity: 0, duration: 0.8, stagger: 0.05, ease: 'back.out(1.2)' });
-            gsap.from('.bottom-btn', { y: 30, opacity: 0, duration: 0.8, delay: 0.3, stagger: 0.1 });
+            gsap.from('.bottom-nav', { y: 30, opacity: 0, duration: 0.8, delay: 0.2 });
         });
+
+        // ---------- AI 模拟对话 ----------
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const container = document.getElementById('chatMessages');
+            container.innerHTML += `<div class="message user">${msg}</div>`;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+            // 模拟机器人回复
+            setTimeout(() => {
+                let reply = '';
+                if (msg.includes('天气')) reply = '今天天气晴朗，适合出门走走哦！';
+                else if (msg.includes('名字')) reply = '我叫智脑，是你的专属AI助手。';
+                else reply = '这是一个非常有趣的问题！我正在学习中，以后会变得更聪明。';
+                container.innerHTML += `<div class="message bot">${reply}</div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 500);
+        }
 
         // ---------- 轻提示 ----------
         function showToast(msg, duration = 2000) {
             const toast = document.getElementById('globalToast');
             toast.textContent = msg;
             toast.style.opacity = '1';
-            setTimeout(() => {
-                toast.style.opacity = '0';
-            }, duration);
+            setTimeout(() => toast.style.opacity = '0', duration);
         }
 
-        // ---------- Cordova 功能 ----------
+        // ---------- Cordova 功能 (与之前一致) ----------
         document.addEventListener('deviceready', onDeviceReady, false);
         function onDeviceReady() {
-            console.log('Cordova 已就绪');
             if (window.StatusBar) {
                 StatusBar.overlaysWebView(true);
                 StatusBar.styleLightContent();
                 StatusBar.backgroundColorByHexString('#050b14');
             }
         }
-        
         function takePhoto() {
             navigator.camera.getPicture(
                 (img) => showToast('✅ 拍照成功'),
@@ -446,15 +596,11 @@
             });
         }
 
-        // ---------- 离线检测 ----------
+        // 离线检测
         (function() {
             const offlineOverlay = document.getElementById('offlineOverlay');
             function updateOnlineStatus() {
-                if (navigator.onLine) {
-                    offlineOverlay.style.display = 'none';
-                } else {
-                    offlineOverlay.style.display = 'flex';
-                }
+                offlineOverlay.style.display = navigator.onLine ? 'none' : 'flex';
             }
             window.addEventListener('online', updateOnlineStatus);
             window.addEventListener('offline', updateOnlineStatus);
